@@ -26,7 +26,7 @@ Starting a self-hosted recipe manager is great, but manually importing thousands
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/YOUR_USERNAME/mealie-recipe-dredger.git](https://github.com/YOUR_USERNAME/mealie-recipe-dredger.git)
+    git clone [https://github.com/D0rk4ce/mealie-recipe-dredger.git](https://github.com/D0rk4ce/mealie-recipe-dredger.git)
     cd mealie-recipe-dredger
     ```
 
@@ -43,37 +43,47 @@ Open `mealie_dredger.py` in your text editor. You **must** update the configurat
 # --- CONFIGURATION ---
 MEALIE_URL = "[http://192.168.1.100:9000](http://192.168.1.100:9000)"  # Your local Mealie address
 API_TOKEN = "your_api_token_here"        # Found in Mealie: User Settings > Manage API Tokens
+```
 
-Optional Settings
+### Optional Settings
 
 You can tune the behavior of the scraper by modifying these variables:
-Variable		Default		Description  
-DRY_RUN 		False		Set to True to scan and find recipes without actually importing them (good for testing).
-TARGET_RECIPES_PER_SITE 50		The script will stop scanning a specific site once it finds this many new recipes.
-SCAN_DEPTH		1000		How many recent posts to look back through in the sitemap.
 
-🏃 Usage
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `DRY_RUN` | `False` | Set to `True` to scan and find recipes without actually importing them (good for testing). |
+| `TARGET_RECIPES_PER_SITE` | `50` | The script will stop scanning a specific site once it finds this many **new** recipes. |
+| `SCAN_DEPTH` | `1000` | How many recent posts to look back through in the sitemap. |
+
+## 🏃 Usage
+
 Run the script manually:
 
+```bash
 python mealie_dredger.py
+```
 
-Automation (Cron)
+### Automation (Cron)
 To keep your recipe book constantly updated with the latest releases from your favorite blogs, you can set this up as a weekly cron job:
 
+```bash
 0 3 * * 0 /usr/bin/python3 /path/to/mealie_dredger.py >> /path/to/logs/mealie_import.log 2>&1
+```
 
-🌍 The Site List
-The script includes a SITES list within the code containing URLs for high-quality food blogs. You can add or remove URLs from this list to customize where your recipes come from.
+## 🌍 The Site List
+The script includes a `SITES` list within the code containing URLs for high-quality food blogs. You can add or remove URLs from this list to customize where your recipes come from.
 
-⚠️ Disclaimer & Ethics
+## ⚠️ Disclaimer & Ethics
+
 This tool is intended for personal archiving and self-hosting purposes.
 
-Be Polite: The script includes delays (time.sleep) to prevent overloading site servers. Do not remove these delays.
+* **Be Polite:** The script includes delays (`time.sleep`) to prevent overloading site servers. Do not remove these delays.
+* **Respect Creators:** Please continue to visit the original blogs to support the content creators who make these recipes possible.
 
-Respect Creators: Please continue to visit the original blogs to support the content creators who make these recipes possible.
+## 🤝 Contributing
 
-🤝 Contributing
 Got a great food blog that parses well? Feel free to submit a Pull Request to add it to the curated list!
 
-📜 License
-Distributed under the MIT License. See LICENSE for more information.
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
