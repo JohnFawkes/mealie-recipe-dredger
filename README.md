@@ -2,17 +2,19 @@
 
 ![Python](https://img.shields.io/badge/python-3.x-blue?style=flat-square)
 ![Docker](https://img.shields.io/badge/Docker-Supported-blue?style=flat-square)
-![Mealie](https://img.shields.io/badge/Support-Mealie-orange?style=flat-square)
-![Tandoor](https://img.shields.io/badge/Support-Tandoor-blue?style=flat-square)
+![Mealie](https://img.shields.io/badge/Target-Mealie-green?style=flat-square)
+![Tandoor](https://img.shields.io/badge/Experimental-Tandoor-yellow?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 
 **A bulk-import automation tool to populate your self-hosted recipe managers with high-quality recipes.**
+
+> ⚠️ **Note regarding Tandoor:** This script was built and tested specifically for **Mealie**. Tandoor support was added via community request and is currently **untested** by the author. If you use Tandoor, please report your results in the Issues tab!
 
 This script automates the process of finding **new** recipes. It scans a curated list of high-quality food blogs, detects new posts via sitemaps, checks if you already have them in your library, and imports them automatically.
 
 ## 🚀 Features
 
-* **Multi-Platform:** Supports importing to **Mealie**, **Tandoor**, or both simultaneously.
+* **Multi-Platform:** Supports importing to **Mealie** (Primary) and **Tandoor** (Experimental).
 * **Smart Deduplication:** Checks your existing libraries first. It will never import a URL you already have.
 * **Recipe Verification:** Scans candidate pages for Schema.org JSON-LD to ensure it only imports actual recipes.
 * **Deep Sitemap Scanning:** Automatically parses XML sitemaps to find the most recent posts.
