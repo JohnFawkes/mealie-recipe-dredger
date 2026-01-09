@@ -36,7 +36,7 @@ services:
       - TANDOOR_API_KEY=your_tandoor_key
       - SCRAPE_LANG=en,de  # Supports comma-separated lists
       # Optional: Override the built-in site list
-      - SITES=https://example.com,https://another-blog.com
+      - SITES= https://example.com,https://another-blog.com
     restart: "no"
 ```
 
