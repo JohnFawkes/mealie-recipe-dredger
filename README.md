@@ -20,7 +20,7 @@ This script automates the process of finding **new** recipes. It scans a curated
 
 The most efficient way to run the Dredger is using Docker. You do not need to clone the repository or install Python.
 
-1. Create a `docker-compose.yml` file:
+1.  Create a `docker-compose.yml` file:
 
 ```yaml
 services:
@@ -40,7 +40,7 @@ services:
     restart: "no"
 ```
 
-2. Run the tool:
+2.  Run the tool:
     ```bash
     docker compose up
     ```
@@ -69,21 +69,21 @@ To run this weekly (e.g., Sundays at 3am), add an entry to your host's crontab:
 
 If you prefer to run the script manually without Docker:
 
-1. **Clone the repository:**
+1.  **Clone the repository:**
     ```bash
     git clone [https://github.com/d0rk4ce/mealie-recipe-dredger.git](https://github.com/d0rk4ce/mealie-recipe-dredger.git)
     cd mealie-recipe-dredger
     ```
 
-2. **Install dependencies:**
+2.  **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
 
-3. **Configure:**
+3.  **Configure:**
     Open `dredger.py` and edit the default values in the `CONFIGURATION` block, or export environment variables in your terminal.
 
-4. **Run:**
+4.  **Run:**
     ```bash
     python dredger.py
     ```
