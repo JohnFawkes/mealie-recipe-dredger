@@ -71,11 +71,11 @@ To run this weekly (e.g., Sundays at 3am), add an entry to your host's crontab:
 | `TANDOOR_URL` | N/A | Your local Tandoor URL. |
 | `TANDOOR_API_KEY` | N/A | Your Tandoor API key. |
 | `SCRAPE_LANG` | `en` | Comma-separated ISO codes for allowed languages (e.g., `en` or `en,de`). |
-| `SITES` | (Curated List) | A comma-separated list of blog URLs to scrape (overrides the built-in list). |
-
+| `SITES` | (Curated List) |
 | `DRY_RUN` | `False` | Set to `true` to scan and log without actually importing. Great for testing. |
 | `TARGET_RECIPES_PER_SITE` | `50` | Stops scanning a specific site after importing this many recipes. |
 | `SCAN_DEPTH` | `1000` | Maximum number of sitemap links to check per site before giving up. |
+
 ## 🐍 Manual Usage (Python)
 
 If you prefer to run the script manually without Docker:
