@@ -4,7 +4,7 @@ import json
 import os
 import subprocess
 import warnings 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
 from langdetect import detect, DetectorFactory
 
 # Prevent the "XMLParsedAsHTMLWarning"
