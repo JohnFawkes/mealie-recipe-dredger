@@ -5,6 +5,7 @@ A bulk-import automation tool to populate your self-hosted recipe managers with 
 > **⚠️ Note regarding Tandoor:** This script was built and tested specifically for **Mealie**. Tandoor support was added via community request and is currently **untested** by the author. If you use Tandoor, please report your results in the Issues tab!
 
 ![Release](https://img.shields.io/github/v/release/D0rk4ce/mealie-recipe-dredger?include_prereleases&style=flat-square)
+
 This script automates the process of finding **new** recipes. It scans a curated list of high-quality food blogs, detects new posts via sitemaps, checks if you already have them in your library, and imports them automatically.
 
 ## 🚀 Features
@@ -37,7 +38,7 @@ services:
       - TANDOOR_API_KEY=your_tandoor_key
       
       # --- Scraper Behavior ---
-      - DRY_RUN=false                  # Set to true to test without importing
+      - DRY_RUN=false                 # Set to true to test without importing
       - TARGET_RECIPES_PER_SITE=50     # Stop after importing this many per site
       - SCAN_DEPTH=1000                # How many links to check before giving up on a site
       - SCRAPE_LANG=en,de              # Filter content by language
@@ -71,7 +72,7 @@ To run this weekly (e.g., Sundays at 3am), add an entry to your host's crontab:
 | `TANDOOR_URL` | N/A | Your local Tandoor URL. |
 | `TANDOOR_API_KEY` | N/A | Your Tandoor API key. |
 | `SCRAPE_LANG` | `en` | Comma-separated ISO codes for allowed languages (e.g., `en` or `en,de`). |
-| `SITES` | (Curated List) |
+| `SITES` | (Curated List) | A comma-separated list of blog URLs to scrape (overrides the built-in list). |
 | `DRY_RUN` | `False` | Set to `true` to scan and log without actually importing. Great for testing. |
 | `TARGET_RECIPES_PER_SITE` | `50` | Stops scanning a specific site after importing this many recipes. |
 | `SCAN_DEPTH` | `1000` | Maximum number of sitemap links to check per site before giving up. |
@@ -98,6 +99,10 @@ If you prefer to run the script manually without Docker:
     ```bash
     python dredger.py
     ```
+
+## 🤝 Contributors
+
+* **@rpowel** - Stability and logging fixes in v1.0.0-beta.5.
 
 ## ⚠️ Disclaimer & Ethics
 
