@@ -102,7 +102,7 @@ If you prefer to run the script manually without Docker:
 
 ## 🤝 Contributors
 
-* **@rpowel** - Stability and logging fixes in v1.0.0-beta.5.
+* **@rpowel and @johnfawkes** - Stability and logging fixes in v1.0.0-beta.5.
 
 ## ⚠️ Disclaimer & Ethics
 
