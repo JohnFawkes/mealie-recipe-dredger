@@ -86,7 +86,7 @@ If you prefer to run the script manually without Docker:
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/d0rk4ce/mealie-recipe-dredger.git
+    git clone [https://github.com/d0rk4ce/mealie-recipe-dredger.git](https://github.com/d0rk4ce/mealie-recipe-dredger.git)
     cd mealie-recipe-dredger
     ```
 
@@ -96,12 +96,13 @@ If you prefer to run the script manually without Docker:
     ```
 
 3. **Configure:**
-    Open `dredger.py` and edit the default values in the `CONFIGURATION` block, or export environment variables in your terminal.
+    Open `dredger.py` and edit the default values in the `CONFIGURATION` block, or export environment variables in your terminal. 
 
 4. **Run:**
     ```bash
     python dredger.py
     ```
+> **Note:** On the first run, the script will create a `data/` folder in your local directory to store `imported.json` and `rejects.json`. These files ensure the script remembers your progress across runs.
 
 ## 🤝 Contributors
 
