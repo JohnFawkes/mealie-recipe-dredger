@@ -3,16 +3,42 @@ services:
     image: ghcr.io/d0rk4ce/mealie-recipe-dredger:latest
     container_name: mealie-recipe-dredger
     environment:
+      # --- Connection Settings ---
       - MEALIE_ENABLED=true
-      - MEALIE_URL=http://your-mealie-ip:9000
-      - MEALIE_API_TOKEN=your_token_here
+      - MEALIE_URL=http://192.168.1.X:9000
+      - MEALIE_API_TOKEN=your_mealie_token
       - TANDOOR_ENABLED=false
-      - TANDOOR_URL=http://your-tandoor-ip:8080
-      - TANDOOR_API_KEY=your_key_here
-      - SCRAPE_LANG=en,de
+      - TANDOOR_URL=http://192.168.1.X:8080
+      - TANDOOR_API_KEY=your_tandoor_key
+      
+      # --- Scraper Behavior ---
+      - DRY_RUN=false
       - TARGET_RECIPES_PER_SITE=50
       - SCAN_DEPTH=1000
-      - DRY_RUN=false
+      - SCRAPE_LANG=en,de
+      
+      # --- Sources ---
+      # - SITES=https://example.com
     volumes:
-      - ./data:/app
+      - ./data:/app/data
+    restart: "no"
+
+  # 🧹 Maintenance: Master Cleaner
+  # Run manually with: docker compose --profile maintenance up
+  mealie-cleaner:
+    image: ghcr.io/d0rk4ce/mealie-recipe-dredger:latest
+    container_name: mealie-cleaner
+    command: python maintenance/master_cleaner.py
+    profiles: ["maintenance"]
+    environment:
+      - DRY_RUN=true            # Set to false to DELETE recipes
+      - MAX_WORKERS=2           # Default is 2 to save SQLite
+      - MEALIE_ENABLED=true
+      - MEALIE_URL=http://192.168.1.X:9000
+      - MEALIE_API_TOKEN=your_mealie_token
+      - TANDOOR_ENABLED=false
+      - TANDOOR_URL=http://192.168.1.X:8080
+      - TANDOOR_API_KEY=your_tandoor_key
+    volumes:
+      - ./data:/app/data
     restart: "no"

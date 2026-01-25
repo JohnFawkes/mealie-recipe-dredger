@@ -39,7 +39,7 @@ services:
       - TANDOOR_API_KEY=your_tandoor_key
       
       # --- Scraper Behavior ---
-      - DRY_RUN=false                 # Set to true to test without importing
+      - DRY_RUN=true                  # 🛡️ SAFETY: Defaults to True. Change to false to import.
       - TARGET_RECIPES_PER_SITE=50     # Stop after importing this many per site
       - SCAN_DEPTH=1000                # How many links to check before giving up on a site
       - SCRAPE_LANG=en,de              # Filter content by language
@@ -48,12 +48,35 @@ services:
       # Optional: Override the built-in site list
       - SITES=https://example.com,https://another-blog.com
     volumes:
-      - ./data:/app
+      - ./data:/app/data
+    restart: "no"
+    
+  # 🧹 Maintenance: Master Cleaner
+  # Run manually with: docker compose run --rm mealie-cleaner
+  mealie-cleaner:
+    image: ghcr.io/d0rk4ce/mealie-recipe-dredger:latest
+    container_name: mealie-cleaner
+    command: python maintenance/master_cleaner.py
+    profiles: ["maintenance"]
+    environment:
+      - DRY_RUN=true            # 🛡️ SAFETY: Set to false to DELETE recipes
+      - MAX_WORKERS=2           # Default is 2 to prevent database locks
+      # --- Mealie Config ---
+      - MEALIE_ENABLED=true
+      - MEALIE_URL=http://192.168.1.X:9000
+      - MEALIE_API_TOKEN=your_mealie_token
+      # --- EXPERIMENTAL Tandoor Config ---
+      - TANDOOR_ENABLED=false
+      - TANDOOR_URL=http://192.168.1.X:8080
+      - TANDOOR_API_KEY=your_tandoor_key
+    volumes:
+      - ./data:/app/data
     restart: "no"
 ```
 
 2. Run the tool:
     ```bash
+    # To run the Dredger (Import Mode)
     docker compose up
     ```
 
@@ -63,6 +86,19 @@ To run this weekly (e.g., Sundays at 3am), add an entry to your host's crontab:
 ```bash
 0 3 * * 0 cd /path/to/docker-compose-folder && docker compose up
 ```
+
+## 🧹 Maintenance Mode (Cleaner)
+
+The image includes a `master_cleaner.py` script to purge duplicates, listicles, and broken recipes.
+
+**To run the cleaner in isolation (Dry Run):**
+```bash
+docker compose run --rm mealie-cleaner
+```
+
+**To actually delete data:**
+1. Edit `docker-compose.yml` and set `DRY_RUN=false` in the `mealie-cleaner` service.
+2. Run the command above again.
 
 ## ⚙️ Configuration Variables
 
@@ -76,7 +112,7 @@ To run this weekly (e.g., Sundays at 3am), add an entry to your host's crontab:
 | `TANDOOR_API_KEY` | N/A | Your Tandoor API key. |
 | `SCRAPE_LANG` | `en` | Comma-separated ISO codes for allowed languages (e.g., `en` or `en,de`). |
 | `SITES` | (Curated List) | A comma-separated list of blog URLs to scrape (overrides the built-in list). |
-| `DRY_RUN` | `False` | Set to `true` to scan and log without actually importing. Great for testing. |
+| `DRY_RUN` | `True` | **Dredger:** Scan without importing. **Cleaner:** Scan without deleting. |
 | `TARGET_RECIPES_PER_SITE` | `50` | Stops scanning a specific site after importing this many recipes. |
 | `SCAN_DEPTH` | `1000` | Maximum number of sitemap links to check per site before giving up. |
 
@@ -86,7 +122,7 @@ If you prefer to run the script manually without Docker:
 
 1. **Clone the repository:**
     ```bash
-    git clone [https://github.com/d0rk4ce/mealie-recipe-dredger.git](https://github.com/d0rk4ce/mealie-recipe-dredger.git)
+    git clone https://github.com/d0rk4ce/mealie-recipe-dredger.git
     cd mealie-recipe-dredger
     ```
 
@@ -96,13 +132,16 @@ If you prefer to run the script manually without Docker:
     ```
 
 3. **Configure:**
-    Open `dredger.py` and edit the default values in the `CONFIGURATION` block, or export environment variables in your terminal. 
+    Open `dredger.py` or `maintenance/master_cleaner.py` and edit the default values in the `CONFIGURATION` block, or export environment variables in your terminal.
 
 4. **Run:**
     ```bash
     python dredger.py
+    # OR
+    python maintenance/master_cleaner.py
     ```
-> **Note:** On the first run, the script will create a `data/` folder in your local directory to store `imported.json` and `rejects.json`. These files ensure the script remembers your progress across runs.
+
+> **Note:** The script creates a `data/` folder to persist `imported.json` and `rejects.json` between runs.
 
 ## 🤝 Contributors
 

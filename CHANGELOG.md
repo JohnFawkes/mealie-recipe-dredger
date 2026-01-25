@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0-beta.7] - 2026-01-24
+### Added
+- **Master Cleaner:** New tool located in `maintenance/` to surgically remove duplicates, listicles, and broken recipes. [cite: 2025-12-16]
+- **Docker Profiles:** Added `maintenance` profile to `docker-compose.yml` to allow running the cleaner on-demand without auto-starting it.
+- **Monorepo Structure:** Reorganized repository to support multiple tools (Dredger + Cleaner) in a single Docker image. [cite: 2025-12-30]
+
+### Changed
+- **Safety First:** `DRY_RUN` now defaults to `true` for both the Dredger and Cleaner services to prevent accidental imports or deletions. [cite: 2025-12-16]
+
 ## [1.0.0-beta.6] - 2026-01-23
 ### Added
 - **Paranoid Mode:** Integrated robust URL filtering and listicle detection to prevent non-recipe content from being imported.
