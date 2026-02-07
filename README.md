@@ -226,12 +226,12 @@ This overrides `sites.json` entirely.
 
 ### Configuration Files (Edit These)
 
-| File | Purpose | Commit to Git? |
-| :--- | :--- | :--- |
-| `.env` | **Your secrets and settings** (API tokens, URLs, behavior) | ❌ NO - Contains secrets! |
-| `.env.example` | Template showing all available settings | ✅ YES - Safe template |
-| `sites.json` | **100+ curated food blogs** organized by cuisine | ✅ YES - Just URLs, no secrets |
-| `docker-compose.yml` | Container configuration | ✅ YES |
+| File | Purpose |
+| :--- | :--- |
+| `.env` | **Your secrets and settings** (API tokens, URLs, behavior) |
+| `.env.example` | Template showing all available settings |
+| `sites.json` | **100+ curated food blogs** organized by cuisine |
+| `docker-compose.yml` | Container configuration |
 
 ### Runtime Data Files (Auto-Generated)
 
