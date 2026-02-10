@@ -25,7 +25,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta
 
 # --- CONSTANTS ---
-VERSION = "1.0.0-beta.9"
+VERSION = "1.0.0-beta.10"  # Bumped version for API fix
 
 # --- OPTIONAL VISUALS ---
 try:
@@ -502,7 +502,7 @@ class RecipeVerifier:
             return False, None, f"Exception: {str(e)}"
 
 # ============================================================================
-# IMPORT MANAGER
+# IMPORT MANAGER (UPDATED: AUTO-DETECTS MEALIE V1/V2/V3)
 # ============================================================================
 
 class ImportManager:
@@ -511,33 +511,56 @@ class ImportManager:
         self.storage = storage
         self.rate_limiter = rate_limiter
         self.dry_run = dry_run
-    
+        # Cache the working endpoint so we don't guess every time
+        self.working_endpoint = None
+
     def import_to_mealie(self, url: str) -> Tuple[bool, Optional[str]]:
         if self.dry_run:
             logger.info(f"   [DRY RUN] Would import to Mealie: {url}")
             return True, None
         
         headers = {"Authorization": f"Bearer {MEALIE_API_TOKEN}"}
-        try:
-            self.rate_limiter.wait_if_needed(MEALIE_URL)
-            r = self.session.post(
-                f"{MEALIE_URL}/api/recipes/create-url", 
-                headers=headers, 
-                json={"url": url}, 
-                timeout=20
-            )
-            
-            if r.status_code == 201:
-                logger.info(f"   ✅ [Mealie] Imported: {url}")
-                return True, None
-            elif r.status_code == 409:
-                logger.info(f"   ⚠️ [Mealie] Duplicate: {url}")
-                return True, None
-            else:
-                return False, f"HTTP {r.status_code}"
         
-        except Exception as e:
-            return False, str(e)
+        # 1. Determine endpoints to try
+        # If we already found the right one, use it. Otherwise, try New (v2/v3) then Old (v1)
+        if self.working_endpoint:
+            endpoints = [self.working_endpoint]
+        else:
+            endpoints = ["/api/recipes/create/url", "/api/recipes/create-url"]
+
+        self.rate_limiter.wait_if_needed(MEALIE_URL)
+        
+        last_error = None
+
+        for endpoint in endpoints:
+            try:
+                full_url = f"{MEALIE_URL}{endpoint}"
+                r = self.session.post(full_url, headers=headers, json={"url": url}, timeout=20)
+                
+                # If 404/405, the endpoint is wrong/deprecated. Try the next one.
+                if r.status_code in [404, 405]:
+                    last_error = f"HTTP {r.status_code} on {endpoint}"
+                    continue
+
+                # Success! Save the working endpoint for future requests.
+                if self.working_endpoint is None:
+                    self.working_endpoint = endpoint
+                    logger.debug(f"   🎯 Auto-Detected Mealie API: {endpoint}")
+
+                if r.status_code in [200, 201]:
+                    logger.info(f"   ✅ [Mealie] Imported: {url}")
+                    return True, None
+                elif r.status_code == 409:
+                    logger.info(f"   ⚠️ [Mealie] Duplicate: {url}")
+                    return True, None
+                else:
+                    return False, f"HTTP {r.status_code}"
+            
+            except Exception as e:
+                last_error = str(e)
+                continue
+        
+        return False, f"All API attempts failed. Last error: {last_error}"
 
     def import_to_tandoor(self, url: str) -> Tuple[bool, Optional[str]]:
         if self.dry_run:
