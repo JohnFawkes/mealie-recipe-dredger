@@ -25,7 +25,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta
 
 # --- CONSTANTS ---
-VERSION = "1.0.0-beta.10"  # Bumped version for API fix
+VERSION = "1.0.0-beta.10"
 
 # --- OPTIONAL VISUALS ---
 try:
@@ -76,11 +76,17 @@ CACHE_EXPIRY_DAYS = int(os.getenv('CACHE_EXPIRY_DAYS', 7))
 
 DetectorFactory.seed = 0
 
-# --- THE FULL CURATED LIST ---
+# --- THE FULL CURATED LIST (108 Sites) ---
 DEFAULT_SITES = [
-    # --- GENERAL / WESTERN ---
+    # --- MAJOR PUBLISHERS (High Volume/Reliability) ---
     "https://www.seriouseats.com", "https://www.bonappetit.com",
     "https://www.foodandwine.com", "https://www.simplyrecipes.com",
+    "https://www.thekitchn.com", "https://www.delish.com",
+    "https://www.tasteofhome.com", "https://www.marthastewart.com",
+    "https://www.bbcgoodfood.com", "https://www.eatingwell.com",
+    "https://www.allrecipes.com", "https://www.foodnetwork.com",
+
+    # --- TOP TIER BLOGS (General) ---
     "https://smittenkitchen.com", "https://www.skinnytaste.com",
     "https://www.budgetbytes.com", "https://www.twopeasandtheirpod.com",
     "https://cookieandkate.com", "https://minimalistbaker.com",
@@ -97,6 +103,13 @@ DEFAULT_SITES = [
     "https://www.sproutedkitchen.com", "https://www.howsweeteats.com",
     "https://joythebaker.com", "https://www.melskitchencafe.com",
     "https://www.ambitiouskitchen.com", "https://www.eatingbirdfood.com",
+    "https://www.kitchensanctuary.com", "https://www.jessicagavin.com",
+    "https://www.lecremedelacrumb.com", "https://tastesbetterfromscratch.com",
+
+    # --- VEGETARIAN / VEGAN SPECIALTY ---
+    "https://ohsheglows.com", "https://www.forksoverknives.com",
+    "https://www.veganricha.com", "https://sweetsimplevegan.com",
+    "https://simple-veganista.com", "https://www.noracooks.com",
 
     # --- ASIAN (East, SE, South) ---
     "https://www.justonecookbook.com", "https://www.woksoflife.com",
@@ -110,6 +123,7 @@ DEFAULT_SITES = [
     "https://chinasichuanfood.com", "https://redhousespice.com",
     "https://seonkyounglongest.com", "https://pupswithchopsticks.com",
     "https://wandercooks.com", "https://www.pressurecookrecipes.com",
+    "https://www.swasthi.recipes",
 
     # --- LATIN AMERICAN ---
     "https://www.mexicoinmykitchen.com", "https://www.isabeleats.com",
@@ -134,7 +148,8 @@ DEFAULT_SITES = [
 
     # --- BAKING / DESSERT SPECIFIC ---
     "https://www.kingarthurbaking.com/recipes", "https://preppykitchen.com",
-    "https://sugarspunrun.com", "https://www.biggerbolderbaking.com"
+    "https://sugarspunrun.com", "https://www.biggerbolderbaking.com",
+    "https://www.browneyedbaker.com", "https://www.mybakingaddiction.com"
 ]
 
 # --- PARANOID FILTERS ---
@@ -283,9 +298,8 @@ class GracefulKiller:
         self.kill_now = True
 
 # ============================================================================
-# RATE LIMITER
+# RATE LIMITER (FIXED: Respects HTTP vs HTTPS scheme)
 # ============================================================================
-
 class RateLimiter:
     def __init__(self):
         self.last_request: Dict[str, float] = {}
@@ -295,14 +309,23 @@ class RateLimiter:
     def get_domain(self, url: str) -> str:
         return urlparse(url).netloc
     
-    def get_crawl_delay(self, domain: str) -> float:
+    def get_crawl_delay(self, url: str) -> float:
+        domain = self.get_domain(url)
         if domain in self.crawl_delays:
             return self.crawl_delays[domain]
         
         delay = DEFAULT_CRAWL_DELAY
         if RESPECT_ROBOTS_TXT:
             try:
-                r = self.session.get(f"https://{domain}/robots.txt", timeout=5)
+                # QC FIX: Use the actual scheme (http or https) from the URL
+                parsed = urlparse(url)
+                scheme = parsed.scheme if parsed.scheme else "https"
+                
+                # If checking localhost or LAN IP, use HTTP unless specified otherwise
+                if "192.168" in domain or "127.0.0.1" in domain or "localhost" in domain:
+                    if scheme == "https": scheme = "http" # Fallback to HTTP for LAN if unsure
+
+                r = self.session.get(f"{scheme}://{domain}/robots.txt", timeout=5)
                 if r.status_code == 200:
                     for line in r.text.splitlines():
                         if line.lower().startswith('crawl-delay:'):
@@ -319,7 +342,7 @@ class RateLimiter:
     
     def wait_if_needed(self, url: str):
         domain = self.get_domain(url)
-        delay = self.get_crawl_delay(domain)
+        delay = self.get_crawl_delay(url) # Pass full URL so we know the scheme
         
         if domain in self.last_request:
             elapsed = time.time() - self.last_request[domain]
@@ -351,7 +374,7 @@ def get_session() -> requests.Session:
     return session
 
 # ============================================================================
-# SITEMAP CRAWLER
+# SITEMAP CRAWLER (WITH GARBAGE FILTER)
 # ============================================================================
 
 class SitemapCrawler:
@@ -415,7 +438,24 @@ class SitemapCrawler:
             
             # Handle URL Sitemaps
             if soup.find('url'):
-                 return [loc.text for loc in soup.find_all('loc')]
+                 raw_urls = [loc.text for loc in soup.find_all('loc')]
+                 
+                 # --- THE GARBAGE FILTER ---
+                 clean_urls = []
+                 # Define extensions to skip immediately
+                 junk_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.zip'}
+                 
+                 for u in raw_urls:
+                     u_lower = u.lower()
+                     # 1. Drop image/binary files immediately
+                     if any(u_lower.endswith(ext) for ext in junk_extensions):
+                         continue
+                     # 2. Drop obvious non-recipe pages
+                     if any(x in u_lower for x in ['/privacy-policy', '/contact', '/about', '/login', '/wp-content/', '/cdn-cgi/']):
+                         continue
+                     clean_urls.append(u)
+                 
+                 return clean_urls
             
             return []
 
@@ -440,7 +480,6 @@ class SitemapCrawler:
 # ============================================================================
 # RECIPE VERIFIER
 # ============================================================================
-
 class RecipeVerifier:
     def __init__(self, session: requests.Session):
         self.session = session
@@ -502,7 +541,7 @@ class RecipeVerifier:
             return False, None, f"Exception: {str(e)}"
 
 # ============================================================================
-# IMPORT MANAGER (UPDATED: AUTO-DETECTS MEALIE V1/V2/V3)
+# IMPORT MANAGER (AUTO-DETECT MEALIE VERSION)
 # ============================================================================
 
 class ImportManager:
@@ -783,3 +822,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
