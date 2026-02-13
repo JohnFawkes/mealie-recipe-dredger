@@ -7,6 +7,10 @@ import sys
 import concurrent.futures
 import logging
 from urllib.parse import urlparse
+from dotenv import load_dotenv
+
+# --- LOAD ENV VARS ---
+load_dotenv()
 
 # --- LOGGING CONFIGURATION ---
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO').upper()
@@ -49,7 +53,9 @@ def load_json_set(filename):
     if os.path.exists(filename):
         try:
             with open(filename, 'r') as f: return set(json.load(f))
-        except: return set()
+        except Exception as e:
+            logger.warning(f"Error loading {filename}: {e}")
+            return set()
     return set()
 
 def save_json_set(filename, data_set):
@@ -142,7 +148,8 @@ def is_junk_content(name, url):
     if not url: return False
     try:
         slug = urlparse(url).path.strip("/").split("/")[-1].lower()
-    except: slug = ""
+    except Exception:
+        slug = ""
     name_l = name.lower()
     
     for kw in HIGH_RISK_KEYWORDS:
@@ -190,7 +197,9 @@ def check_integrity(recipe, service="mealie"):
             return (slug_or_id, name, "Empty/Broken Instructions", url, service)
         
         return (slug_or_id, "VERIFIED")
-    except: return None
+    except Exception as e:
+        logger.debug(f"Integrity check failed for {slug_or_id}: {e}")
+        return None
 
 # --- MAIN ---
 if __name__ == "__main__":

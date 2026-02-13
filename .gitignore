@@ -1,45 +1,33 @@
-# Python
+# Python Distribution
+build/
+dist/
+*.egg-info/
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
+
+# Virtual Environments
 env/
 venv/
+.venv/
 ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Data files (user-generated)
+# Data (User Generated)
 data/
 
-# Environment (CRITICAL: Never commit .env with secrets!)
+# Secrets (CRITICAL)
 .env
 .env.local
 *.env
 # KEEP .env.example - it's the safe template
 
-# IDE
+# IDE & OS
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
+*Zone.Identifier
 .DS_Store
 .DS_Store?
 ._*
@@ -48,14 +36,14 @@ data/
 ehthumbs.db
 Thumbs.db
 
-# Logs
+# Logs & Temp
 *.log
-
-# Temporary files
 *.tmp
 *.temp
 .cache/
 
-# Project-specific
-update_readme.py
-housekeeping.py
+# Dev Tools (Excluded from release)
+scripts/
+tests/
+.pytest_cache/
+.agent/

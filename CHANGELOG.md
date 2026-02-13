@@ -1,6 +1,24 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.0-beta.11] - 2026-02-13
+
+### Added - Content
+- **Massive Site List Expansion:** Now supporting **149 verified food blogs** (up from 100), with new granular categories for Balkan, Middle Eastern, African, and South American cuisine.
+- **Smart Organization:** `sites.json` is now fully categorized by region/diet with clear headers.
+
+### Added - Reliability & Features
+- **Retry Queue Processing:** Automatically retries transient failures (timeouts, 500 errors) from previous runs to maximize success rates.
+- **Webhook Notifications:** Get notified via Discord/Slack/Gotify when a dredge cycle completes (set `NOTIFICATION_WEBHOOK_URL`).
+- **Startup Connectivity Check:** Fast-fail logic verifies Mealie/Tandoor API connection immediately on startup.
+- **Library Sync:** New `SYNC_LIBRARY` option to pre-fetch existing recipes to local memory, drastically reducing API calls for large libraries.
+- **Language Filtering:** Filter recipes by language (e.g. `en`, `fr`, `de`) using `LANGUAGE_FILTER` environment variable.
+
+### Changed
+- **Lightweight Core:** `dredger.py` fallback list reduced to 10 major sites to keep the script clean; full power is in `sites.json`.
+- **Python 3.12:** Docker image upgraded to Python 3.12 slim-bookworm for better performance and security.
+- **Refactored Codebase:** Configuration logic moved to `config.py` for better separation of concerns.
+
 ## [1.0.0-beta.9] - 2026-02-07
 
 ### Added - Configuration & Usability

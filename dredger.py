@@ -25,7 +25,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta
 
 # --- CONSTANTS ---
-VERSION = "1.0.0-beta.10"
+VERSION = "1.0.0-beta.11"
 
 # --- OPTIONAL VISUALS ---
 try:
@@ -65,6 +65,18 @@ TANDOOR_API_KEY = os.getenv('TANDOOR_API_KEY', 'your-key')
 DEFAULT_CRAWL_DELAY = float(os.getenv('CRAWL_DELAY', 2.0))
 RESPECT_ROBOTS_TXT = os.getenv('RESPECT_ROBOTS_TXT', 'true').lower() == 'true'
 
+# Notifications
+NOTIFICATION_WEBHOOK_URL = os.getenv('NOTIFICATION_WEBHOOK_URL', '').strip()
+
+# Library sync
+SYNC_LIBRARY = os.getenv('SYNC_LIBRARY', 'true').lower() == 'true'
+
+# Language filtering (e.g., 'en', 'es', 'fr' or empty to allow all)
+LANGUAGE_FILTER = os.getenv('LANGUAGE_FILTER', '').strip().lower()
+
+# Seed langdetect for reproducible results
+DetectorFactory.seed = 0
+
 # Memory settings
 os.makedirs("data", exist_ok=True)
 REJECT_FILE = "data/rejects.json"
@@ -74,82 +86,30 @@ STATS_FILE = "data/stats.json"
 SITEMAP_CACHE_FILE = "data/sitemap_cache.json"
 CACHE_EXPIRY_DAYS = int(os.getenv('CACHE_EXPIRY_DAYS', 7))
 
-DetectorFactory.seed = 0
+# --- TUNING CONSTANTS ---
+MAX_SUB_SITEMAPS = 3
+FLUSH_THRESHOLD = 50
+SITEMAP_TIMEOUT = 10
+IMPORT_TIMEOUT = 20
+ROBOTS_TXT_TIMEOUT = 5
+MAX_SITEMAP_DEPTH = 2
+KNOWN_RECIPE_CLASSES = ['wp-recipe-maker', 'tasty-recipes', 'mv-create-card', 'recipe-card']
 
-# --- THE FULL CURATED LIST (108 Sites) ---
+
+
+# --- FALLBACK LIST (10 Major Sites) ---
+# Note: The full categorized list (120+ sites) is in sites.json
 DEFAULT_SITES = [
-    # --- MAJOR PUBLISHERS (High Volume/Reliability) ---
-    "https://www.seriouseats.com", "https://www.bonappetit.com",
-    "https://www.foodandwine.com", "https://www.simplyrecipes.com",
-    "https://www.thekitchn.com", "https://www.delish.com",
-    "https://www.tasteofhome.com", "https://www.marthastewart.com",
-    "https://www.bbcgoodfood.com", "https://www.eatingwell.com",
-    "https://www.allrecipes.com", "https://www.foodnetwork.com",
-
-    # --- TOP TIER BLOGS (General) ---
-    "https://smittenkitchen.com", "https://www.skinnytaste.com",
-    "https://www.budgetbytes.com", "https://www.twopeasandtheirpod.com",
-    "https://cookieandkate.com", "https://minimalistbaker.com",
-    "https://gimmesomeoven.com", "https://pinchofyum.com",
-    "https://www.loveandlemons.com", "https://damndelicious.net",
-    "https://www.halfbakedharvest.com", "https://sallysbakingaddiction.com",
-    "https://www.wellplated.com", "https://www.acouplecooks.com",
-    "https://www.feastingathome.com", "https://www.recipetineats.com",
-    "https://www.dinneratthezoo.com", "https://cafedelites.com",
-    "https://natashaskitchen.com", "https://www.spendwithpennies.com",
-    "https://carlsbadcravings.com", "https://www.averiecooks.com",
-    "https://www.closetcooking.com", "https://rasamalaysia.com",
-    "https://iamafoodblog.com", "https://www.101cookbooks.com",
-    "https://www.sproutedkitchen.com", "https://www.howsweeteats.com",
-    "https://joythebaker.com", "https://www.melskitchencafe.com",
-    "https://www.ambitiouskitchen.com", "https://www.eatingbirdfood.com",
-    "https://www.kitchensanctuary.com", "https://www.jessicagavin.com",
-    "https://www.lecremedelacrumb.com", "https://tastesbetterfromscratch.com",
-
-    # --- VEGETARIAN / VEGAN SPECIALTY ---
-    "https://ohsheglows.com", "https://www.forksoverknives.com",
-    "https://www.veganricha.com", "https://sweetsimplevegan.com",
-    "https://simple-veganista.com", "https://www.noracooks.com",
-
-    # --- ASIAN (East, SE, South) ---
-    "https://www.justonecookbook.com", "https://www.woksoflife.com",
-    "https://omnivorescookbook.com", "https://glebekitchen.com",
-    "https://www.indianhealthyrecipes.com", "https://www.vegrecipesofindia.com",
-    "https://www.manjulaskitchen.com", "https://hebbarskitchen.com",
-    "https://maangchi.com", "https://www.koreanbapsang.com",
-    "https://mykoreankitchen.com", "https://hot-thai-kitchen.com",
-    "https://sheasim.com", "https://panlasangpinoy.com",
-    "https://www.kawalingpinoy.com", "https://steamykitchen.com",
-    "https://chinasichuanfood.com", "https://redhousespice.com",
-    "https://seonkyounglongest.com", "https://pupswithchopsticks.com",
-    "https://wandercooks.com", "https://www.pressurecookrecipes.com",
-    "https://www.swasthi.recipes",
-
-    # --- LATIN AMERICAN ---
-    "https://www.mexicoinmykitchen.com", "https://www.isabeleats.com",
-    "https://pinaenlacocina.com", "https://www.dominicancooking.com",
-    "https://www.mycolombianrecipes.com", "https://www.laylita.com",
-    "https://www.braziliankitchenabroad.com", "https://www.chilipeppermadness.com",
-    "https://www.kitchengidget.com", "https://www.quericavida.com",
-
-    # --- AFRICAN / CARIBBEAN ---
-    "https://www.africanbites.com", "https://lowcarbafrica.com",
-    "https://www.myactivekitchen.com", "https://9jafoodie.com",
-    "https://www.cheflolaskitchen.com", "https://sisijemimah.com",
-    "https://originalflava.com", "https://caribbeanpot.com",
-    "https://www.alicaspepperpot.com", "https://jehancancook.com",
-    "https://www.cookwithdena.com", "https://kausarskitchen.com",
-
-    # --- MEDITERRANEAN / MIDDLE EASTERN ---
-    "https://www.themediterraneandish.com", "https://cookieandkate.com",
-    "https://www.lazycatkitchen.com", "https://ozlemsturkishtable.com",
-    "https://persianmama.com", "https://www.unicornsinthekitchen.com",
-    "https://www.myjewishlearning.com/the-nosher", "https://toriavey.com",
-
-    # --- BAKING / DESSERT SPECIFIC ---
-    "https://www.kingarthurbaking.com/recipes", "https://preppykitchen.com",
-    "https://sugarspunrun.com", "https://www.biggerbolderbaking.com",
-    "https://www.browneyedbaker.com", "https://www.mybakingaddiction.com"
+    "https://www.seriouseats.com",
+    "https://www.bonappetit.com",
+    "https://www.recipetineats.com",
+    "https://smittenkitchen.com",
+    "https://minimalistbaker.com",
+    "https://www.justonecookbook.com",
+    "https://www.woksoflife.com",
+    "https://sallysbakingaddiction.com",
+    "https://www.skinnytaste.com",
+    "https://www.budgetbytes.com"
 ]
 
 # --- PARANOID FILTERS ---
@@ -196,7 +156,7 @@ class StorageManager:
         self.sitemap_cache: Dict[str, dict] = self._load_json_dict(SITEMAP_CACHE_FILE)
         
         self._changes_since_flush = 0
-        self._flush_threshold = 50
+        self._flush_threshold = FLUSH_THRESHOLD
         
     def _load_json_set(self, filename: str) -> Set[str]:
         if os.path.exists(filename):
@@ -325,7 +285,7 @@ class RateLimiter:
                 if "192.168" in domain or "127.0.0.1" in domain or "localhost" in domain:
                     if scheme == "https": scheme = "http" # Fallback to HTTP for LAN if unsure
 
-                r = self.session.get(f"{scheme}://{domain}/robots.txt", timeout=5)
+                r = self.session.get(f"{scheme}://{domain}/robots.txt", timeout=ROBOTS_TXT_TIMEOUT)
                 if r.status_code == 200:
                     for line in r.text.splitlines():
                         if line.lower().startswith('crawl-delay:'):
@@ -385,13 +345,13 @@ class SitemapCrawler:
     def find_sitemap(self, base_url: str) -> Optional[str]:
         # 1. Check robots.txt
         try:
-            r = self.session.get(f"{base_url}/robots.txt", timeout=5)
+            r = self.session.get(f"{base_url}/robots.txt", timeout=ROBOTS_TXT_TIMEOUT)
             if r.status_code == 200:
                 for line in r.text.splitlines():
                     if "Sitemap:" in line:
                         return line.split("Sitemap:")[1].strip()
-        except: 
-            pass
+        except Exception as e: 
+            logger.debug(f"robots.txt fetch failed for {base_url}: {e}")
         
         # 2. Check standard candidates
         candidates = [
@@ -404,20 +364,20 @@ class SitemapCrawler:
         
         for url in candidates:
             try:
-                r = self.session.head(url, timeout=5)
+                r = self.session.head(url, timeout=ROBOTS_TXT_TIMEOUT)
                 if r.status_code == 200: 
                     return url
-            except: 
-                pass
+            except Exception as e: 
+                logger.debug(f"Sitemap candidate check failed for {url}: {e}")
         
         return None
     
     def fetch_sitemap_urls(self, url: str, depth: int = 0) -> List[str]:
-        if depth > 2: 
+        if depth > MAX_SITEMAP_DEPTH: 
             return []
         
         try:
-            r = self.session.get(url, timeout=10)
+            r = self.session.get(url, timeout=SITEMAP_TIMEOUT)
             if r.status_code != 200: 
                 return []
             
@@ -432,7 +392,7 @@ class SitemapCrawler:
                 if not targets: 
                     targets = sub_maps
                 
-                for sub in targets[:3]: 
+                for sub in targets[:MAX_SUB_SITEMAPS]: 
                     all_urls.extend(self.fetch_sitemap_urls(sub, depth + 1))
                 return all_urls
             
@@ -501,14 +461,14 @@ class RecipeVerifier:
                 if "best recipes" in title or "top 10" in title: 
                     return "Listicle title"
         
-        except: 
-            pass
+        except Exception as e: 
+            logger.debug(f"Paranoid skip check error for {url}: {e}")
         
         return None
     
     def verify_recipe(self, url: str) -> Tuple[bool, Optional[BeautifulSoup], Optional[str]]:
         try:
-            r = self.session.get(url, timeout=10)
+            r = self.session.get(url, timeout=SITEMAP_TIMEOUT)
             if r.status_code != 200: 
                 return False, None, f"HTTP {r.status_code}"
             
@@ -521,7 +481,7 @@ class RecipeVerifier:
             
             if not is_recipe:
                 soup = BeautifulSoup(r.content, 'lxml')
-                if soup.find(class_=lambda x: x and any(cls in x for cls in ['wp-recipe-maker', 'tasty-recipes', 'mv-create-card', 'recipe-card'])):
+                if soup.find(class_=lambda x: x and any(cls in x for cls in KNOWN_RECIPE_CLASSES)):
                     is_recipe = True
             
             if not is_recipe: 
@@ -534,6 +494,17 @@ class RecipeVerifier:
             skip_reason = self.is_paranoid_skip(url, soup)
             if skip_reason: 
                 return False, soup, skip_reason
+            
+            # Language filter
+            if LANGUAGE_FILTER:
+                try:
+                    text = soup.get_text(separator=' ', strip=True)[:1000]
+                    if len(text) > 50:  # Need enough text for reliable detection
+                        detected_lang = detect(text)
+                        if detected_lang != LANGUAGE_FILTER:
+                            return False, soup, f"Language mismatch: detected '{detected_lang}', want '{LANGUAGE_FILTER}'"
+                except Exception as e:
+                    logger.debug(f"Language detection failed for {url}: {e}")
             
             return True, soup, None
         
@@ -574,7 +545,7 @@ class ImportManager:
         for endpoint in endpoints:
             try:
                 full_url = f"{MEALIE_URL}{endpoint}"
-                r = self.session.post(full_url, headers=headers, json={"url": url}, timeout=20)
+                r = self.session.post(full_url, headers=headers, json={"url": url}, timeout=IMPORT_TIMEOUT)
                 
                 # If 404/405, the endpoint is wrong/deprecated. Try the next one.
                 if r.status_code in [404, 405]:
@@ -613,7 +584,7 @@ class ImportManager:
                 f"{TANDOOR_URL}/api/recipe/import-url/", 
                 headers=headers, 
                 json={"url": url}, 
-                timeout=20
+                timeout=IMPORT_TIMEOUT
             )
             
             if r.status_code in [200, 201]:
@@ -657,6 +628,140 @@ def validate_config():
         
     for issue in issues:
         logger.warning(issue)
+
+def check_connectivity(session: requests.Session):
+    """Verify API connectivity before starting the crawl. Exit early on failure."""
+    if MEALIE_ENABLED and MEALIE_API_TOKEN != 'your-token':
+        try:
+            headers = {"Authorization": f"Bearer {MEALIE_API_TOKEN}"}
+            r = session.get(f"{MEALIE_URL}/api/recipes?page=1&perPage=1", headers=headers, timeout=ROBOTS_TXT_TIMEOUT)
+            if r.status_code == 200:
+                logger.info(f"   ✅ Mealie connectivity OK ({MEALIE_URL})")
+            elif r.status_code == 401:
+                logger.critical(f"❌ Mealie API token is invalid (HTTP 401). Check MEALIE_API_TOKEN.")
+                sys.exit(1)
+            else:
+                logger.warning(f"⚠️  Mealie returned HTTP {r.status_code} — proceeding anyway")
+        except Exception as e:
+            logger.critical(f"❌ Cannot reach Mealie at {MEALIE_URL}: {e}")
+            sys.exit(1)
+    
+    if TANDOOR_ENABLED and TANDOOR_API_KEY != 'your-key':
+        try:
+            headers = {"Authorization": f"Bearer {TANDOOR_API_KEY}"}
+            r = session.get(f"{TANDOOR_URL}/api/recipe/?page=1&limit=1", headers=headers, timeout=ROBOTS_TXT_TIMEOUT)
+            if r.status_code == 200:
+                logger.info(f"   ✅ Tandoor connectivity OK ({TANDOOR_URL})")
+            elif r.status_code in [401, 403]:
+                logger.critical(f"❌ Tandoor API key is invalid (HTTP {r.status_code}). Check TANDOOR_API_KEY.")
+                sys.exit(1)
+            else:
+                logger.warning(f"⚠️  Tandoor returned HTTP {r.status_code} — proceeding anyway")
+        except Exception as e:
+            logger.critical(f"❌ Cannot reach Tandoor at {TANDOOR_URL}: {e}")
+            sys.exit(1)
+
+def sync_existing_library(session: requests.Session, storage: StorageManager):
+    """Fetch URLs already in Mealie/Tandoor to avoid duplicate import attempts."""
+    synced = 0
+    
+    if MEALIE_ENABLED and MEALIE_API_TOKEN != 'your-token':
+        headers = {"Authorization": f"Bearer {MEALIE_API_TOKEN}"}
+        page = 1
+        while True:
+            try:
+                r = session.get(f"{MEALIE_URL}/api/recipes?page={page}&perPage=100", headers=headers, timeout=SITEMAP_TIMEOUT)
+                if r.status_code != 200:
+                    break
+                items = r.json().get('items', [])
+                if not items:
+                    break
+                for item in items:
+                    url = item.get('orgURL') or item.get('originalURL', '')
+                    if url and url.startswith('http'):
+                        storage.imported.add(url)
+                        synced += 1
+                page += 1
+            except Exception as e:
+                logger.warning(f"Library sync stopped (page {page}): {e}")
+                break
+    
+    if synced > 0:
+        logger.info(f"   📚 Synced {synced} existing library URLs")
+
+def process_retry_queue(storage: StorageManager, importer, verifier: 'RecipeVerifier', rate_limiter: 'RateLimiter') -> int:
+    """Process pending retries from previous runs. Returns count of successful imports."""
+    if not storage.retry_queue:
+        return 0
+    
+    MAX_RETRY_ATTEMPTS = 3
+    MIN_RETRY_INTERVAL_HOURS = 1
+    imported_count = 0
+    completed_urls = []
+    
+    eligible = []
+    for url, info in storage.retry_queue.items():
+        if info.get('attempts', 0) >= MAX_RETRY_ATTEMPTS:
+            storage.add_reject(url)
+            completed_urls.append(url)
+            continue
+        
+        last_attempt = info.get('last_attempt', '')
+        if last_attempt:
+            try:
+                last_time = datetime.fromisoformat(last_attempt)
+                if datetime.now() - last_time < timedelta(hours=MIN_RETRY_INTERVAL_HOURS):
+                    continue
+            except (ValueError, TypeError):
+                pass
+        
+        eligible.append(url)
+    
+    if eligible:
+        logger.info(f"🔄 Processing {len(eligible)} retries from previous runs...")
+    
+    for url in eligible:
+        rate_limiter.wait_if_needed(url)
+        is_recipe, soup, error = verifier.verify_recipe(url)
+        
+        if is_recipe:
+            if importer.import_recipe(url):
+                storage.add_imported(url)
+                imported_count += 1
+                completed_urls.append(url)
+            else:
+                storage.retry_queue[url]['attempts'] = storage.retry_queue[url].get('attempts', 0) + 1
+                storage.retry_queue[url]['last_attempt'] = datetime.now().isoformat()
+        else:
+            storage.add_reject(url)
+            completed_urls.append(url)
+    
+    for url in completed_urls:
+        storage.retry_queue.pop(url, None)
+    
+    if imported_count > 0:
+        logger.info(f"   ✅ Retries: {imported_count} imported, {len(completed_urls) - imported_count} permanently rejected")
+    
+    return imported_count
+
+def send_notification(storage: StorageManager):
+    """Send a summary notification via webhook (Discord, Slack, ntfy, etc.)."""
+    if not NOTIFICATION_WEBHOOK_URL:
+        return
+    
+    summary = (
+        f"🍲 Recipe Dredger Complete ({VERSION})\n"
+        f"   Imported: {len(storage.imported)}\n"
+        f"   Rejected: {len(storage.rejects)}\n"
+        f"   Retry Queue: {len(storage.retry_queue)}\n"
+        f"   Cached Sitemaps: {len(storage.sitemap_cache)}"
+    )
+    
+    try:
+        requests.post(NOTIFICATION_WEBHOOK_URL, json={"content": summary, "text": summary}, timeout=ROBOTS_TXT_TIMEOUT)
+        logger.info("📨 Notification sent")
+    except Exception as e:
+        logger.warning(f"Failed to send notification: {e}")
 
 def print_summary(storage: StorageManager):
     logger.info("=" * 50)
@@ -730,7 +835,10 @@ def main():
     SCAN_DEPTH_COUNT = args.depth
     FORCE_REFRESH = args.no_cache
     
+    # Startup checks
+    session = get_session()
     validate_config()
+    check_connectivity(session)
     
     sites_list = load_sites_from_source(args.sites)
 
@@ -742,11 +850,17 @@ def main():
     # Initialize components
     storage = StorageManager()
     killer = GracefulKiller()
-    session = get_session()
     rate_limiter = RateLimiter()
     crawler = SitemapCrawler(session, storage)
     verifier = RecipeVerifier(session)
     importer = ImportManager(session, storage, rate_limiter, DRY_RUN_MODE)
+    
+    # Sync existing library to avoid duplicate API calls
+    if SYNC_LIBRARY and not DRY_RUN_MODE:
+        sync_existing_library(session, storage)
+    
+    # Process retry queue from previous runs
+    process_retry_queue(storage, importer, verifier, rate_limiter)
     
     # Process sites
     random.shuffle(sites_list)
@@ -817,6 +931,9 @@ def main():
         print_summary(storage)
     else:
         logger.info("⏸️  Gracefully stopped by signal")
+    
+    # Send notification webhook
+    send_notification(storage)
         
     logger.info("🏁 Dredge Cycle Complete")
 

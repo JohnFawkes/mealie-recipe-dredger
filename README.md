@@ -23,36 +23,21 @@ This script automates the process of finding **new** recipes. It scans a curated
 * **Per-Site Statistics:** Tracks imported/rejected/error counts for each site processed.
 * **Progress Visualization:** Optional tqdm progress bars for long-running operations.
 
-## 📊 What's New in v1.0-beta.9
+## 📊 What's New in v1.0-beta.11
 
-### Configuration & Security Improvements
-- **`.env` file support** for secure secrets management (no more tokens in docker-compose.yml!)
-- **`sites.json` external site list** - edit 100+ curated food blogs without touching code
-- **SETUP_GUIDE.md** added for first-time users (5-minute setup)
-- **Security:** `.gitignore` protects your `.env` file from accidental commits
-
-### Performance Improvements
-- **50% fewer HTTP requests** through intelligent HEAD checks and sitemap caching
-- **40% faster processing** via single-pass HTML parsing and JSON-LD fast paths
-- **Robust XML parsing** using BeautifulSoup instead of fragile regex patterns
+### Massive Content Expansion
+- **149+ Verified Food Blogs:** A huge leap from previous versions, now including detailed coverage for **Balkan**, **Middle Eastern**, **African**, and **South American** cuisines.
+- **Granular Categorization:** `sites.json` is now fully organized by region and diet type.
 
 ### Reliability Enhancements
-- **Graceful shutdown handling** for Docker containers (SIGTERM/SIGINT support)
-- **Configuration validation** warns about missing API tokens before starting
-- **Rate limit jitter** (0.5x-1.5x variance) mimics human browsing patterns
-- **Session summary** displays total imported/rejected/cached counts at completion
+- **Retry Queue Processing:** Automatically retries transient failures (timeouts, 500 errors) from previous runs to maximize success rates.
+- **Webhook Notifications:** Get notified via Discord/Slack/Gotify when a dredge cycle completes (set `NOTIFICATION_WEBHOOK_URL`).
+- **Startup Connectivity Check:** Fast-fail logic verifies Mealie/Tandoor API connection immediately on startup.
 
-### New Features
-- **`--version` flag** to check current version
-- **`--no-cache` flag** to force fresh sitemap crawls
-- **Per-site statistics** show results after each site is processed
-- **Multi-architecture Docker images** with ARM64 support (Raspberry Pi compatible)
-
-### Developer Experience
-- **Type hints throughout** for better IDE support
-- **Dataclasses** for structured data management
-- **Enhanced logging** with startup banner and progress indicators
-- **Comprehensive error handling** with detailed failure reasons
+### Performance & Usability
+- **Library Sync:** New `SYNC_LIBRARY` option to pre-fetch existing recipes to local memory, drastically reducing API calls for large libraries.
+- **Language Filtering:** Filter recipes by language (e.g. `en`, `fr`, `de`) using `LANGUAGE_FILTER` environment variable.
+- **Refactored Core:** Lighter, faster, and easier to maintain codebase with centralized configuration.
 
 ## 🐳 Quick Start (Docker)
 
@@ -79,8 +64,8 @@ The most efficient way to run the Dredger is using Docker with a `.env` file for
 
 3. **Update these critical values in `.env`:**
    ```bash
-   MEALIE_URL=http://192.168.1.10:9000          # Your Mealie URL
-   MEALIE_API_TOKEN=eyJhbGciOiJIUzI1NiIsInR5...  # Your API token
+   MEALIE_URL=http://your-mealie-instance.local:9000          # Your Mealie URL
+   MEALIE_API_TOKEN=insert_your_api_token_here  # Your API token
    DRY_RUN=false                                 # Set to false to import
    ```
 
@@ -119,8 +104,8 @@ recipe-dredger/
 ```bash
 # Mealie Configuration
 MEALIE_ENABLED=true
-MEALIE_URL=http://192.168.1.10:9000
-MEALIE_API_TOKEN=your_token_here
+MEALIE_URL=http://your-mealie-instance.local:9000
+MEALIE_API_TOKEN=insert_your_api_token_here
 
 # Scraper Behavior
 DRY_RUN=true              # Set to false for live import
@@ -134,7 +119,7 @@ CACHE_EXPIRY_DAYS=7
 
 **Security Note:** Never commit `.env` to git! It contains your API tokens. The `.env.example` file is safe to commit.
 
-### Command-Line Options (New in beta.9)
+### Command-Line Options
 
 ```bash
 # Check version
@@ -182,7 +167,7 @@ All configuration is managed via the `.env` file (copy from `.env.example`).
 | Variable | Default | Description |
 | :--- | :--- | :--- |
 | `MEALIE_ENABLED` | `true` | Set to `false` to disable Mealie imports. |
-| `MEALIE_URL` | N/A | Your local Mealie URL (e.g. `http://192.168.1.5:9000`). |
+| `MEALIE_URL` | N/A | Your local Mealie URL (e.g. `http://your-mealie-instance.local:9000`). |
 | `MEALIE_API_TOKEN` | N/A | Found in Mealie User Settings > Manage API Tokens. |
 | `TANDOOR_ENABLED` | `false` | Set to `true` to enable Tandoor imports. |
 | `TANDOOR_URL` | N/A | Your local Tandoor URL. |
@@ -197,7 +182,7 @@ All configuration is managed via the `.env` file (copy from `.env.example`).
 | `TARGET_RECIPES_PER_SITE` | `50` | Stops scanning a specific site after importing this many recipes. |
 | `SCAN_DEPTH` | `1000` | Maximum number of sitemap links to check per site before giving up. |
 
-### Performance & Rate Limiting (New in beta.9)
+### Performance & Rate Limiting
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
@@ -323,13 +308,13 @@ If you prefer to run the script manually without Docker:
 - Check your `data/sitemap_cache.json` is being used (look for cache hits in logs with `LOG_LEVEL=DEBUG`)
 
 ### Issue: "Container stops unexpectedly"
-**Solution:** v1.0-beta.9 includes graceful shutdown handling. Check logs for `🛑 Received signal` messages. Your data is automatically saved before exit.
+**Solution:** The script includes graceful shutdown handling. Check logs for `🛑 Received signal` messages. Your data is automatically saved before exit.
 
 ## 📊 Understanding the Output
 
 ### Startup Banner
 ```
-🍲 Recipe Dredger Started (v1.0-beta.9)
+🍲 Recipe Dredger Started (v1.0-beta.11)
    Mode: DRY RUN
    Targets: 95 sites
    Limit: 50 per site
@@ -372,7 +357,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 🔄 Upgrading from Previous Versions
 
-### From beta.8 → beta.9
+### Upgrading (General)
 
 **Configuration changes (recommended):**
 
